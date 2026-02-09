@@ -22,9 +22,10 @@ from .config import get_settings
 
 settings = get_settings()
 
+# In main.py – replace only this line:
 llm = LocalLLMClient(
     base_url="http://localhost:11434",
-    model="codellama:7b",
+    model="llama3.1:8b",          # ← change here
 )
 
 print("llm: ", llm)
@@ -221,17 +222,18 @@ async def post_inline_comment(
         "Accept": "application/vnd.github+json",
         "User-Agent": "PR-Guardian-AI",
     }
-
+    print("commit_id, line",commit_id,line)
     payload = {
         "body": body,
         "commit_id": commit_id,
         "path": path,
-        "line": line,
+        "line": 1,
         "side": "RIGHT",
     }
 
     async with httpx.AsyncClient(timeout=20) as client:
         resp = await client.post(url, headers=headers, json=payload)
+        print("response from posting inline comment: ", resp.text)
         resp.raise_for_status()
 
 
@@ -368,8 +370,6 @@ async def webhook(
             - Only comment if something is wrong or improvable
             - If nothing is wrong return:
             {"comments": [], "summary": "No issues found"}
-
-            Now review these changes:
             """
 
             example = """
