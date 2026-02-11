@@ -29,8 +29,6 @@ HEADERS = {"Authorization": f"Bearer {settings.hf_token}"}
 
 def query_llm(prompt):
 
-    url = "https://router.huggingface.co/v1/chat/completions"
-
     payload = {
         "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
         "messages": [
@@ -40,7 +38,7 @@ def query_llm(prompt):
         "temperature": 0.2
     }
 
-    response = requests.post(url, headers=HEADERS, json=payload)
+    response = requests.post(API_URL, headers=HEADERS, json=payload)
 
     print("STATUS:", response.status_code)
     print("RAW:", response.text)
