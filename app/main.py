@@ -15,8 +15,17 @@ from .diff_parser import parse_diff
 from .rules import run_rules
 import requests
 
-API_URL = "https://router.huggingface.co/models/Qwen/Qwen2.5-Coder-7B-Instruct"
-HEADERS = {"Authorization": "Bearer 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"}
+from .config import get_settings
+
+# ==========================
+# Settings & Logging
+# ==========================
+
+
+settings = get_settings()
+
+API_URL = settings.hf_api_url
+HEADERS = {"Authorization": f"Bearer {settings.hf_token}"}
 
 def query_llm(prompt):
 
@@ -44,14 +53,6 @@ def query_llm(prompt):
 
 
 # print(query_llm("Review this code diff: ..."))
-
-from .config import get_settings
-
-# ==========================
-# Settings & Logging
-# ==========================
-
-settings = get_settings()
 
 # Initialize local LLM client
 llm = LocalLLMClient(

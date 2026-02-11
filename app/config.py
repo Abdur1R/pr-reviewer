@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     github_webhook_secret: str = Field(..., alias="GITHUB_WEBHOOK_SECRET")
     openai_api_key: str = Field(..., alias="OPENAI_API_KEY")
     log_level: str = Field("info", alias="LOG_LEVEL")
+    hf_token: str = Field(..., alias="HF_TOKEN")
+    hf_api_url: str = Field(..., alias="HF_API_URL")
 
     model_config = SettingsConfigDict(
         env_file=".env",
