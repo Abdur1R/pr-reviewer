@@ -6,3 +6,4 @@ PyJWT
 httpx
 cryptography
 openai
+requests
