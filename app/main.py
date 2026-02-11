@@ -13,6 +13,37 @@ from fastapi.responses import JSONResponse
 from .llm_client import LocalLLMClient
 from .diff_parser import parse_diff
 from .rules import run_rules
+import requests
+
+API_URL = "https://router.huggingface.co/models/Qwen/Qwen2.5-Coder-7B-Instruct"
+HEADERS = {"Authorization": "Bearer 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"}
+
+def query_llm(prompt):
+
+    url = "https://router.huggingface.co/v1/chat/completions"
+
+    payload = {
+        "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+        "messages": [
+            {"role": "user", "content": prompt}
+        ],
+        "max_tokens": 512,
+        "temperature": 0.2
+    }
+
+    response = requests.post(url, headers=HEADERS, json=payload)
+
+    print("STATUS:", response.status_code)
+    print("RAW:", response.text)
+
+    response.raise_for_status()
+
+    data = response.json()
+    return data["choices"][0]["message"]["content"]
+
+
+
+# print(query_llm("Review this code diff: ..."))
 
 from .config import get_settings
 
@@ -22,7 +53,7 @@ from .config import get_settings
 
 settings = get_settings()
 
-# In main.py – replace only this line:
+# Initialize local LLM client
 llm = LocalLLMClient(
     base_url="http://localhost:11434",
     model="llama3.1:8b",          # ← change here
@@ -227,7 +258,7 @@ async def post_inline_comment(
         "body": body,
         "commit_id": commit_id,
         "path": path,
-        "line": 1,
+        "line": line,
         "side": "RIGHT",
     }
 
@@ -396,12 +427,15 @@ async def webhook(
             
             logger.info("llm payload:\n%s \n%s", payload,json.dumps(payload, indent=2))
             
-            # 4) Ask LLM
-            llm_result = await llm.review(json.dumps(payload))
+            # 4) Ask local LLM
+            # llm_result = await llm.review(json.dumps(payload))
+            
+            # Ask llm via Hugging Face API
+            llm_result=query_llm(payload)
 
             logger.info(">>> LLM response: %s", llm_result)
 
-            raw = llm_result["response"]
+            raw = llm_result
             
             logger.info(">>> LLM RAW TEXT:\n%s", raw)
 
