@@ -81,7 +81,6 @@ logger = logging.getLogger("pr-guardian")
 
 # FastAPI app
 app = FastAPI(title="PR Guardian AI Webhook")
-app.include_router(installations_router)
 
 
 # ==========================
