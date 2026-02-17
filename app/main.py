@@ -16,6 +16,7 @@ from .rules import run_rules
 import requests
 
 from .config import get_settings
+from .routes.installations import router as installations_router
 
 # ==========================
 # Settings & Logging
@@ -70,6 +71,7 @@ logger = logging.getLogger("pr-guardian")
 
 # FastAPI app
 app = FastAPI(title="PR Guardian AI Webhook")
+app.include_router(installations_router)
 
 
 # ==========================
