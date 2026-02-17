@@ -7,5 +7,4 @@ httpx
 cryptography
 openai
 requests
-pydantic-settings
-pymongo
+pydantic_settings

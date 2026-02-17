@@ -3,7 +3,7 @@ import openai
 from .config import get_settings
 
 settings = get_settings()
-openai.api_key = settings.hf_api_key  # unused — kept for reference
+openai.api_key = settings.openai_api_key
 
 async def generate_ai_review(pr_title, pr_body, files):
     text = f"PR Title: {pr_title}\nPR Body: {pr_body}\n"
