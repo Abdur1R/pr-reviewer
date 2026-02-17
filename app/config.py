@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     log_level: str = Field("info", alias="LOG_LEVEL")
     hf_token: str = Field(..., alias="HF_TOKEN")
     hf_api_url: str = Field(..., alias="HF_API_URL")
+    mongodb_uri: str = Field("mongodb://localhost:27017", alias="MONGODB_URI")
+    mongodb_db: str = Field("pr_reviewer", alias="MONGODB_DB")
 
     model_config = SettingsConfigDict(
         env_file=".env",
