@@ -8,3 +8,4 @@ cryptography
 openai
 requests
 pydantic_settings
+pymongo
