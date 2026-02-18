@@ -277,6 +277,49 @@ async def post_inline_comment(
         print("response from posting inline comment: ", resp.text)
         resp.raise_for_status()
 
+def generate_jwt():
+
+    with open(settings.github_private_key_path, "r") as f:
+        private_key = f.read()
+
+    payload = {
+        "iat": int(time.time()),
+        "exp": int(time.time()) + 600,
+        "iss": settings.github_app_id,
+    }
+
+    encoded_jwt = jwt.encode(
+        payload,
+        private_key,
+        algorithm="RS256"
+    )
+
+    return encoded_jwt
+
+
+def generate_installation_token(installation_id: int):
+
+    jwt_token = generate_jwt()
+    
+    print("Generated JWT: ", jwt_token)
+
+    url = f"https://api.github.com/app/installations/{installation_id}/access_tokens"
+    
+    print("Token URL: ", url)
+    headers = {
+        "Authorization": f"Bearer {jwt_token}",
+        "Accept": "application/vnd.github+json"
+    }
+
+    response = requests.post(url, headers=headers)
+
+    response.raise_for_status()
+
+    data = response.json()
+    
+    print('data: ', data)
+
+    return data["token"]
 
 
 # ==========================
@@ -502,8 +545,12 @@ async def save_installation_settings(
 
     # Upsert user
     users.update_one(
-        {"userId": body.user_id},
-        {"$set": {"userId": body.user_id, "updatedAt": now}, "$setOnInsert": {"createdAt": now}},
+        {"userId": body.user_id,
+        "installationId": installation_id,
+         },
+        {"$set": {"userId": body.user_id,
+                "installationId": installation_id,
+                  "updatedAt": now}, "$setOnInsert": {"createdAt": now}},
         upsert=True,
     )
 
@@ -571,3 +618,24 @@ async def get_user_installations(user_id: str):
     docs = list(installations.find({"userId": user_id}, {"_id": 0}))
 
     return [InstallationResponse(**d) for d in docs]
+
+# get all the selected repos for an installation
+@app.get("/api/repos/{installation_id}")
+async def get_repos(installation_id: int):
+    try:
+        token = generate_installation_token(installation_id)
+        print("Generated token: ", token)
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json"
+        }
+
+        response = requests.get(
+            "https://api.github.com/installation/repositories",
+            headers=headers
+        )
+    except Exception as e:
+        logger.exception("Failed to fetch repositories")
+        return {"error": "Failed to fetch repositories"}
+    return response.json()
