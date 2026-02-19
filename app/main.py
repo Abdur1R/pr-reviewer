@@ -10,7 +10,7 @@ import httpx
 import jwt
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
-
+from fastapi.middleware.cors import CORSMiddleware
 from app.db import get_installations_collection, get_users_collection
 from app.models import InstallationResponse, InstallationSettingsRequest, InstallationUpdateRequest
 from .llm_client import LocalLLMClient
@@ -82,6 +82,19 @@ logger = logging.getLogger("pr-guardian")
 # FastAPI app
 app = FastAPI(title="PR Guardian AI Webhook")
 
+# CORS CONFIGURATION
+origins = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ==========================
 # Helpers
@@ -639,3 +652,23 @@ async def get_repos(installation_id: int):
         logger.exception("Failed to fetch repositories")
         return {"error": "Failed to fetch repositories"}
     return response.json()
+
+# For userID
+@app.get("/installations/{installation_id}/info")
+async def get_installation_info(installation_id: int):
+
+    jwt_token = generate_app_jwt()  # your existing JWT generator
+
+    headers = {
+        "Authorization": f"Bearer {jwt_token}",
+        "Accept": "application/vnd.github+json"
+    }
+
+    response = requests.get(
+        f"https://api.github.com/app/installations/{installation_id}",
+        headers=headers
+    )
+
+    response.raise_for_status()
+
+    return response.json().get("account", {}).get("login", "unknown")
