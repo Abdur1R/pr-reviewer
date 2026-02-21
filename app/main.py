@@ -84,6 +84,7 @@ app = FastAPI(title="PR Guardian AI Webhook")
 
 # CORS CONFIGURATION
 origins = [
+    settings.cors_orgins,  # from env variable
     "http://localhost:8080",
     "http://127.0.0.1:8080",
 ]
