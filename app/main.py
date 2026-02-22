@@ -51,14 +51,34 @@ def query_llm(prompt):
 
     response = requests.post(API_URL, headers=HEADERS, json=payload)
 
-    print("STATUS:", response.status_code)
-    print("RAW:", response.text)
-
     response.raise_for_status()
 
     data = response.json()
     return data["choices"][0]["message"]["content"]
 
+def query_groq(prompt: str):
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {settings.groq_api_key}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.2,
+        "max_tokens": 1024
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+
+    response.raise_for_status()
+
+    return response.json()["choices"][0]["message"]["content"]
 
 
 # print(query_llm("Review this code diff: ..."))
@@ -498,7 +518,8 @@ async def webhook(
             # llm_result = await llm.review(json.dumps(payload))
             
             # Ask llm via Hugging Face API
-            llm_result=query_llm(payload)
+            # llm_result=query_llm(payload)
+            llm_result=query_groq(payload)
 
             logger.info(">>> LLM response: %s", llm_result)
 
