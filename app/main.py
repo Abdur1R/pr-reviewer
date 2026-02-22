@@ -518,8 +518,8 @@ async def webhook(
             # llm_result = await llm.review(json.dumps(payload))
             
             # Ask llm via Hugging Face API
-            # llm_result=query_llm(payload)
-            llm_result=query_groq(payload)
+            llm_result=query_llm(payload)
+            # llm_result=query_groq(payload)
 
             logger.info(">>> LLM response: %s", llm_result)
 
