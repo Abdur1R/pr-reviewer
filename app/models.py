@@ -14,7 +14,6 @@ class RepoSelection(BaseModel):
 class ReviewerConfig(BaseModel):
     provider: Literal["openai", "claude", "huggingface", "ollama"]
     model: str
-    hf_endpoint_url: Optional[str] = Field(None, alias="hfEndpointUrl")
 
     model_config = {"populate_by_name": True}
 
