@@ -519,7 +519,12 @@ async def webhook(
             
             installations = get_installations_collection()
             doc = installations.find_one({"installationId": installation_id}, {"_id": 0})
-            selected_ai= doc.get("reviewer", {}).get("selectedAI", "huggingface")
+            if not doc:
+                logger.warning(f"No installation config found for {installation_id}")
+                selected_ai = "huggingface"  # default fallback
+            else:
+                selected_ai = doc.get("reviewer", {}).get("selectedAI", "huggingface")
+
             logger.info(f"Selected AI for review: {selected_ai}")
             
             if(selected_ai == "huggingface"):
