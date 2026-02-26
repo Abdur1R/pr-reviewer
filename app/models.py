@@ -12,7 +12,7 @@ class RepoSelection(BaseModel):
 
 
 class ReviewerConfig(BaseModel):
-    provider: Literal["openai", "claude", "huggingface", "ollama"]
+    provider: Literal["openai", "claude", "huggingface", "ollama","groq"]
     model: str
 
     model_config = {"populate_by_name": True}
