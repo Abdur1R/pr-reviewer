@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 class RepoSelection(BaseModel):
     repo_id: Optional[int] = Field(None, alias="repoId")
-    full_name: str = Field(..., alias="full_name")
+    full_name: str
 
     model_config = {"populate_by_name": True}
 

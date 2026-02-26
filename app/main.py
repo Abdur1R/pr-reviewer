@@ -608,7 +608,7 @@ async def save_installation_settings(
     doc = {
         "installationId": installation_id,
         "userId": body.user_id,
-        "selectedRepos": [r.model_dump(by_alias=True) for r in body.selected_repos],
+        "selectedRepos": [r.model_dump() for r in body.selected_repos],
         "reviewer": body.reviewer.model_dump(by_alias=True),
         "updatedAt": now,
     }
@@ -637,7 +637,7 @@ async def update_installation_settings(
     update_fields: dict = {"updatedAt": now}
 
     if body.selected_repos is not None:
-        update_fields["selectedRepos"] = [r.model_dump(by_alias=True) for r in body.selected_repos]
+        update_fields["selectedRepos"] = [r.model_dump() for r in body.selected_repos]
 
     if body.reviewer is not None:
         update_fields["reviewer"] = body.reviewer.model_dump(by_alias=True)
