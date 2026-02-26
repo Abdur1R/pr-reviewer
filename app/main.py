@@ -311,49 +311,49 @@
 #         print("response from posting inline comment: ", resp.text)
 #         resp.raise_for_status()
 
-# def generate_jwt():
+def generate_jwt():
 
-#     with open(settings.github_private_key_path, "r") as f:
-#         private_key = f.read()
+    with open(settings.github_private_key_path, "r") as f:
+        private_key = f.read()
 
-#     payload = {
-#         "iat": int(time.time()),
-#         "exp": int(time.time()) + 600,
-#         "iss": settings.github_app_id,
-#     }
+    payload = {
+        "iat": int(time.time()),
+        "exp": int(time.time()) + 600,
+        "iss": settings.github_app_id,
+    }
 
-#     encoded_jwt = jwt.encode(
-#         payload,
-#         private_key,
-#         algorithm="RS256"
-#     )
+    encoded_jwt = jwt.encode(
+        payload,
+        private_key,
+        algorithm="RS256"
+    )
 
-#     return encoded_jwt
+    return encoded_jwt
 
 
-# def generate_installation_token(installation_id: int):
+def generate_installation_token(installation_id: int):
 
-#     jwt_token = generate_jwt()
+    jwt_token = generate_jwt()
     
-#     print("Generated JWT: ", jwt_token)
+    print("Generated JWT: ", jwt_token)
 
-#     url = f"https://api.github.com/app/installations/{installation_id}/access_tokens"
+    url = f"https://api.github.com/app/installations/{installation_id}/access_tokens"
     
-#     print("Token URL: ", url)
-#     headers = {
-#         "Authorization": f"Bearer {jwt_token}",
-#         "Accept": "application/vnd.github+json"
-#     }
+    print("Token URL: ", url)
+    headers = {
+        "Authorization": f"Bearer {jwt_token}",
+        "Accept": "application/vnd.github+json"
+    }
 
-#     response = requests.post(url, headers=headers)
+    response = requests.post(url, headers=headers)
 
-#     response.raise_for_status()
+    response.raise_for_status()
 
-#     data = response.json()
+    data = response.json()
     
-#     print('data: ', data)
+    print('data: ', data)
 
-#     return data["token"]
+    return data["token"]
 
 
 # # ==========================
@@ -761,14 +761,21 @@ async def create_installation_token(installation_id):
         return resp.json()["token"]
 
 
-async def fetch_pr_diff(diff_url, token):
+async def fetch_pr_diff(diff_url: str, token: str) -> str:
+    """
+    Fetch PR diff text, properly handling GitHub redirects.
+    """
 
     headers = {
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3.diff",
+        "User-Agent": "PR-Guardian-AI",
     }
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(
+        timeout=30,
+        follow_redirects=True  # ← THIS FIXES THE ISSUE
+    ) as client:
 
         resp = await client.get(diff_url, headers=headers)
 
