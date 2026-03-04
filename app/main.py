@@ -553,7 +553,7 @@ async def webhook(
                 logger.warning(f"No installation config found for {installation_id}")
                 selected_ai = "huggingface"  # default fallback
             else:
-                selected_ai = doc.get("reviewer", {}).get("selectedAI", "huggingface")
+                selected_ai = doc.get("reviewer", {}).get("provider", "huggingface")
 
             logger.info(f"Selected AI for review: {selected_ai}")
             
