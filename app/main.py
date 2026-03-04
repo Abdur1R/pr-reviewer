@@ -32,11 +32,11 @@ router = APIRouter(prefix="/api")
 # Settings & Logging
 # ==========================
 
-
 settings = get_settings()
 
 API_URL = settings.hf_api_url
 HEADERS = {"Authorization": f"Bearer {settings.hf_token}"}
+
 
 def query_hf(prompt):
 
@@ -55,6 +55,7 @@ def query_hf(prompt):
 
     data = response.json()
     return data["choices"][0]["message"]["content"]
+
 
 def query_groq(prompt: str):
 
@@ -81,16 +82,44 @@ def query_groq(prompt: str):
     return response.json()["choices"][0]["message"]["content"]
 
 
+def query_claude(prompt: str):
+
+    url = "https://api.anthropic.com/v1/messages"
+
+    headers = {
+        "x-api-key": settings.anthropic_api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+    }
+
+    payload = {
+        "model": "claude-3-5-sonnet-20241022",
+        "max_tokens": 1024,
+        "temperature": 0.2,
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+
+    response.raise_for_status()
+
+    return response.json()["content"][0]["text"]
+
 # print(query_hf("Review this code diff: ..."))
+
 
 # Initialize local LLM client
 llm = LocalLLMClient(
     base_url="http://localhost:11434",
-    model="llama3.1:8b",          # ← change here
+    model="llama3.1:8b",  # ← change here
 )
 
 print("llm: ", llm)
-
 
 logging.basicConfig(
     level=getattr(logging, settings.log_level.upper(), logging.INFO),
@@ -120,6 +149,7 @@ app.add_middleware(
 # ==========================
 # Helpers
 # ==========================
+
 
 def verify_github_signature(
     body: bytes,
@@ -238,7 +268,6 @@ async def post_pr_comment(comments_url: str, token: str, body: str) -> None:
         logger.info(f"Post comment status: {resp.status_code}")
         resp.raise_for_status()
 
-
 # async def review_diff_with_ai(diff_text: str, pr_title: str, pr_body: str | None) -> str:
 #     """
 #     Send the diff to OpenAI and get a review comment.
@@ -280,6 +309,7 @@ async def post_pr_comment(comments_url: str, token: str, body: str) -> None:
 #     review_text = await asyncio.to_thread(_call_openai)
 #     return review_text
 
+
 async def post_inline_comment(
     owner: str,
     repo: str,
@@ -297,7 +327,7 @@ async def post_inline_comment(
         "Accept": "application/vnd.github+json",
         "User-Agent": "PR-Guardian-AI",
     }
-    print("commit_id, line",commit_id,line)
+    print("commit_id, line", commit_id, line)
     payload = {
         "body": body,
         "commit_id": commit_id,
@@ -310,6 +340,7 @@ async def post_inline_comment(
         resp = await client.post(url, headers=headers, json=payload)
         print("response from posting inline comment: ", resp.text)
         resp.raise_for_status()
+
 
 def generate_jwt():
 
@@ -355,10 +386,10 @@ def generate_installation_token(installation_id: int):
 
     return data["token"]
 
-
 # # ==========================
 # # Routes
 # # ==========================
+
 
 @app.get("/")
 async def root():
@@ -368,8 +399,8 @@ async def root():
 @app.post("/webhook")
 async def webhook(
     request: Request,
-    x_github_event: str = Header(None, alias="X-GitHub-Event"),
-    x_hub_signature_256: str = Header(None, alias="X-Hub-Signature-256"),
+    x_github_event: str=Header(None, alias="X-GitHub-Event"),
+    x_hub_signature_256: str=Header(None, alias="X-Hub-Signature-256"),
 ):
     raw_body = await request.body()
 
@@ -509,10 +540,9 @@ async def webhook(
 
             payload = instruction + example + json.dumps(changes[:10])
 
-
             logger.info(">>> Calling LLM with %d changes", len(changes[:10]))
             
-            logger.info("llm payload:\n%s \n%s", payload,json.dumps(payload, indent=2))
+            logger.info("llm payload:\n%s \n%s", payload, json.dumps(payload, indent=2))
             
             # 4) Ask local LLM
             # llm_result = await llm.review(json.dumps(payload))
@@ -529,11 +559,15 @@ async def webhook(
             
             if(selected_ai == "huggingface"):
                 # Ask llm via Hugging Face API
-                llm_result=query_hf(payload)
+                llm_result = query_hf(payload)
             # elif(selected_ai == "groq"):
-            else:                
+            elif(selected_ai == "groq"): 
                 # Ask llm via Groq API
-                llm_result=query_groq(payload)
+                llm_result = query_groq(payload)
+            # elif(selected_ai == "claude"):
+            elif(selected_ai == "claude"):
+                # Ask llm via Claude API
+                llm_result = query_claude(payload)
 
             logger.info(">>> LLM response: %s", llm_result)
 
@@ -669,6 +703,7 @@ async def get_user_installations(user_id: str):
 
     return [InstallationResponse(**d) for d in docs]
 
+
 # get all the selected repos for an installation
 @app.get("/api/repos/{installation_id}")
 async def get_repos(installation_id: int):
@@ -689,6 +724,7 @@ async def get_repos(installation_id: int):
         logger.exception("Failed to fetch repositories")
         return {"error": "Failed to fetch repositories"}
     return response.json()
+
 
 # For userID
 @app.get("/installations/{installation_id}/info")
