@@ -113,13 +113,13 @@ def query_openrouter(prompt: str, model: str):
     )
 
 
-def query_together(prompt: str, model: str):
-    return query_openai_compatible(
-        prompt,
-        api_key=settings.together_api_key,
-        url="https://api.together.xyz/v1/chat/completions",
-        model=model,
-    )
+# def query_together(prompt: str, model: str):
+#     return query_openai_compatible(
+#         prompt,
+#         api_key=settings.together_api_key,
+#         url="https://api.together.xyz/v1/chat/completions",
+#         model=model,
+#     )
 
 
 def query_sambanova(prompt: str, model: str):
@@ -131,32 +131,32 @@ def query_sambanova(prompt: str, model: str):
     )
 
 
-def query_claude(prompt: str):
+# def query_claude(prompt: str):
 
-    url = "https://api.anthropic.com/v1/messages"
+#     url = "https://api.anthropic.com/v1/messages"
 
-    headers = {
-        "x-api-key": settings.anthropic_api_key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json"
-    }
+#     headers = {
+#         "x-api-key": settings.anthropic_api_key,
+#         "anthropic-version": "2023-06-01",
+#         "content-type": "application/json"
+#     }
 
-    payload = {
-        "model": "claude-opus-4-6",
-        "max_tokens": 1024,
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-    }
+#     payload = {
+#         "model": "claude-opus-4-6",
+#         "max_tokens": 1024,
+#         "messages": [
+#             {
+#                 "role": "user",
+#                 "content": prompt
+#             }
+#         ]
+#     }
 
-    response = requests.post(url, headers=headers, json=str(payload))
+#     response = requests.post(url, headers=headers, json=str(payload))
 
-    response.raise_for_status()
+#     response.raise_for_status()
 
-    return response.json()["content"][0]["text"]
+#     return response.json()["content"][0]["text"]
 
 # print(query_hf("Review this code diff: ..."))
 
@@ -611,15 +611,15 @@ async def webhook(
             elif(selected_ai == "groq"): 
                 # Ask llm via Groq API
                 llm_result = query_groq(payload)
-            elif(selected_ai == "claude"):
-                # Ask llm via Claude API
-                llm_result = query_claude(payload)
+            # elif(selected_ai == "claude"):
+            #     # Ask llm via Claude API
+            #     llm_result = query_claude(payload)
             elif(selected_ai == "openrouter"):
                 model_name = doc.get("reviewer", {}).get("model") or "openrouter/free"
                 llm_result = query_openrouter(payload, model_name)
-            elif(selected_ai == "together"):
-                model_name = doc.get("reviewer", {}).get("model") or "serviceNow/Apriel-1.5-15B-Thinker"
-                llm_result = query_together(payload, model_name)
+            # elif(selected_ai == "together"):
+            #     model_name = doc.get("reviewer", {}).get("model") or "serviceNow/Apriel-1.5-15B-Thinker"
+            #     llm_result = query_together(payload, model_name)
             elif(selected_ai == "sambanova"):
                 model_name = doc.get("reviewer", {}).get("model") or "Meta-Llama-3.1-8B-Instruct"
                 llm_result = query_sambanova(payload, model_name)
