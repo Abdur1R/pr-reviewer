@@ -57,29 +57,78 @@ def query_hf(prompt):
     return data["choices"][0]["message"]["content"]
 
 
-def query_groq(prompt: str):
-
-    url = "https://api.groq.com/openai/v1/chat/completions"
+def query_openai_compatible(
+    prompt: str,
+    *,
+    api_key: str,
+    url: str,
+    model: str,
+    extra_headers: dict[str, str] | None = None,
+):
+    if not api_key:
+        raise ValueError(f"Missing API key for provider at {url}")
 
     headers = {
-        "Authorization": f"Bearer {settings.groq_api_key}",
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
     }
+    if extra_headers:
+        headers.update(extra_headers)
 
     payload = {
-        "model": "llama-3.3-70b-versatile",
+        "model": model,
         "messages": [
             {"role": "user", "content": prompt}
         ],
         "temperature": 0.2,
-        "max_tokens": 1024
+        "max_tokens": 1024,
     }
 
     response = requests.post(url, headers=headers, json=payload)
-
     response.raise_for_status()
 
-    return response.json()["choices"][0]["message"]["content"]
+    data = response.json()
+    return data["choices"][0]["message"]["content"]
+
+
+def query_groq(prompt: str):
+    return query_openai_compatible(
+        prompt,
+        api_key=settings.groq_api_key,
+        url="https://api.groq.com/openai/v1/chat/completions",
+        model="llama-3.3-70b-versatile",
+    )
+
+
+def query_openrouter(prompt: str, model: str):
+    return query_openai_compatible(
+        prompt,
+        api_key=settings.openrouter_api_key,
+        url="https://openrouter.ai/api/v1/chat/completions",
+        model=model,
+        extra_headers={
+            "HTTP-Referer": "https://github.com",
+            "X-Title": "PR Guardian AI",
+        },
+    )
+
+
+def query_together(prompt: str, model: str):
+    return query_openai_compatible(
+        prompt,
+        api_key=settings.together_api_key,
+        url="https://api.together.xyz/v1/chat/completions",
+        model=model,
+    )
+
+
+def query_sambanova(prompt: str, model: str):
+    return query_openai_compatible(
+        prompt,
+        api_key=settings.sambanova_api_key,
+        url="https://api.sambanova.ai/v1/chat/completions",
+        model=model,
+    )
 
 
 def query_claude(prompt: str):
@@ -103,7 +152,7 @@ def query_claude(prompt: str):
         ]
     }
 
-    response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(url, headers=headers, json=str(payload))
 
     response.raise_for_status()
 
@@ -559,14 +608,23 @@ async def webhook(
             if(selected_ai == "huggingface"):
                 # Ask llm via Hugging Face API
                 llm_result = query_hf(payload)
-            # elif(selected_ai == "groq"):
             elif(selected_ai == "groq"): 
                 # Ask llm via Groq API
                 llm_result = query_groq(payload)
-            # elif(selected_ai == "claude"):
             elif(selected_ai == "claude"):
                 # Ask llm via Claude API
                 llm_result = query_claude(payload)
+            elif(selected_ai == "openrouter"):
+                model_name = doc.get("reviewer", {}).get("model") or "openrouter/free"
+                llm_result = query_openrouter(payload, model_name)
+            elif(selected_ai == "together"):
+                model_name = doc.get("reviewer", {}).get("model") or "serviceNow/Apriel-1.5-15B-Thinker"
+                llm_result = query_together(payload, model_name)
+            elif(selected_ai == "sambanova"):
+                model_name = doc.get("reviewer", {}).get("model") or "Meta-Llama-3.1-8B-Instruct"
+                llm_result = query_sambanova(payload, model_name)
+            else:
+                raise ValueError(f"Unsupported reviewer provider: {selected_ai}")
 
             logger.info(">>> LLM response: %s", llm_result)
 
@@ -604,7 +662,7 @@ async def webhook(
             await post_pr_comment(
             comments_url,
             gh_token,
-            f"🤖 **PR Guardian AI Summary**\n\n{summary}",
+            f"🤖 **{selected_ai}'s PR Summary**\n\n{summary}",
             )
 
         except Exception as e:
