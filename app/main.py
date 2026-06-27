@@ -23,8 +23,10 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
 
-# from .db import get_installations_collection, get_users_collection
-# from .models import InstallationResponse, InstallationSettingsRequest, InstallationUpdateRequest
+from .config import get_settings
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, HTTPException
 
 router = APIRouter(prefix="/api")
 
@@ -802,3 +804,13 @@ async def get_installation_info(installation_id: int):
     response.raise_for_status()
 
     return response.json().get("account", {}).get("login", "unknown")
+
+
+# ==========================
+# Aria integration
+# ==========================
+from app.prsnlAssist.aria_router import aria_router, aria_startup, aria_shutdown
+
+app.include_router(aria_router)
+app.add_event_handler("startup", aria_startup)
+app.add_event_handler("shutdown", aria_shutdown)
