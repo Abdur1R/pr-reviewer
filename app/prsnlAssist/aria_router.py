@@ -6,7 +6,7 @@ Nothing in this file touches any PR reviewer code.
 
 import io
 import logging
-from typing import Optional, List
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 
@@ -194,7 +194,7 @@ async def _refresh_profile(user_id: str, history: list, current_profile: Optiona
 
 # ─── Document endpoints ───────────────────────────────────────────────────────
 
-def chunk_text(text: str, size: int = 900) -> List[str]:
+def chunk_text(text: str, size: int = 900) -> list[str]:
     return [text[i:i+size] for i in range(0, len(text), size)]
 
 

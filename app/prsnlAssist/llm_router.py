@@ -2,7 +2,7 @@ import os
 import httpx
 import asyncio
 import logging
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple
 from ..config import get_settings
 
 settings = get_settings()
@@ -42,7 +42,7 @@ PROVIDERS = [
     {
         "name": "huggingface",
         "url": "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3/v1/chat/completions",
-        "key_env": settings.huggingface_api_key,
+        "key_env": settings.hf_token,
         "model": "mistralai/Mistral-7B-Instruct-v0.3",
         "openai_compat": True,  # HF also supports OAI-compat now
     },
@@ -51,7 +51,7 @@ PROVIDERS = [
 
 async def _call_provider(
     provider: Dict,
-    messages: List[Dict],
+    messages: list[Dict],
     max_tokens: int,
     timeout: float = 20.0,
 ) -> str:
@@ -80,7 +80,7 @@ async def _call_provider(
 
 
 async def call_llm(
-    messages: List[Dict],
+    messages: list[Dict],
     max_tokens: int = 512,
     preferred_provider: Optional[str] = None,
 ) -> Tuple[str, str]:
@@ -108,7 +108,7 @@ async def call_llm(
     raise RuntimeError(f"All LLM providers failed. Last error: {last_error}")
 
 
-def get_provider_status() -> List[Dict]:
+def get_provider_status() -> list[Dict]:
     """Return which providers have keys configured."""
     return [
         {

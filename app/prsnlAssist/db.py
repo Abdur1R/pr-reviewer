@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, Dict
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 
@@ -87,7 +87,7 @@ async def save_message(session_id: str, role: str, content: str, llm_used: Optio
     )
 
 
-async def get_session_messages(session_id: str) -> List[Dict]:
+async def get_session_messages(session_id: str) -> list[Dict]:
     cursor = _db.messages.find(
         {"session_id": session_id},
         sort=[("ts", 1)]
@@ -112,7 +112,7 @@ async def save_profile(user_id: str, summary: str):
 
 # ─── Documents (RAG chunks) ───────────────────────────────────────────────────
 
-async def save_document(user_id: str, name: str, chunks: List[str]) -> str:
+async def save_document(user_id: str, name: str, chunks: list[str]) -> str:
     result = await _db.documents.insert_one({
         "user_id": user_id,
         "name": name,
@@ -122,7 +122,7 @@ async def save_document(user_id: str, name: str, chunks: List[str]) -> str:
     return str(result.inserted_id)
 
 
-async def get_documents(user_id: str) -> List[Dict]:
+async def get_documents(user_id: str) -> list[Dict]:
     cursor = _db.documents.find({"user_id": user_id}, {"chunks": 0})
     return await cursor.to_list(length=100)
 
@@ -131,7 +131,7 @@ async def delete_document(doc_id: str):
     await _db.documents.delete_one({"_id": ObjectId(doc_id)})
 
 
-async def retrieve_context(user_id: str, query: str, max_chunks: int = 5) -> List[Dict]:
+async def retrieve_context(user_id: str, query: str, max_chunks: int = 5) -> list[Dict]:
     """Keyword-based retrieval across all user documents."""
     terms = [t.lower() for t in query.split() if len(t) > 2]
     if not terms:

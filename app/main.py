@@ -179,6 +179,7 @@ logging.basicConfig(
 logger = logging.getLogger("pr-guardian")
 
 # FastAPI app
+
 app = FastAPI(title="PR Guardian AI Webhook")
 
 # CORS CONFIGURATION
@@ -812,5 +813,10 @@ async def get_installation_info(installation_id: int):
 from app.prsnlAssist.aria_router import aria_router, aria_startup, aria_shutdown
 
 app.include_router(aria_router)
-app.add_event_handler("startup", aria_startup)
-app.add_event_handler("shutdown", aria_shutdown)
+@app.on_event("startup")
+async def _aria_startup():
+    await aria_startup()
+
+@app.on_event("shutdown")
+async def _aria_shutdown():
+    await aria_shutdown()
