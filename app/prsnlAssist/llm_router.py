@@ -56,7 +56,7 @@ async def _call_provider(
     timeout: float = 20.0,
 ) -> str:
     logger.info(f"provider: {provider}")
-    key = os.getenv(provider["key_env"], "")
+    key = provider["key_env"] or ""
     logger.info(f"key: {key}")
     if not key:
         raise ValueError(f"No API key for {provider['name']}")
