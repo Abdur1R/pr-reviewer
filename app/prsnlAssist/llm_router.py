@@ -55,7 +55,9 @@ async def _call_provider(
     max_tokens: int,
     timeout: float = 20.0,
 ) -> str:
+    logger.info(f"provider: {provider}")
     key = os.getenv(provider["key_env"], "")
+    logger.info(f"key: {key}")
     if not key:
         raise ValueError(f"No API key for {provider['name']}")
 
@@ -90,6 +92,7 @@ async def call_llm(
     Raises RuntimeError if all fail.
     """
     ordered = PROVIDERS[:]
+    logger.info(f"ordered: {ordered}")
     if preferred_provider:
         ordered = sorted(ordered, key=lambda p: 0 if p["name"] == preferred_provider else 1)
 
@@ -97,6 +100,7 @@ async def call_llm(
     for provider in ordered:
         try:
             logger.info(f"Trying LLM provider: {provider['name']}")
+            logger.info(f"provider: {provider}")
             reply = await _call_provider(provider, messages, max_tokens)
             logger.info(f"Success with: {provider['name']}")
             return reply, provider["name"]

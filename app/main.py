@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 import httpx
 import jwt
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import APIRouter, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.db import get_installations_collection, get_users_collection
@@ -20,13 +20,6 @@ import requests
 
 from .config import get_settings
 from datetime import datetime, timezone
-
-from fastapi import APIRouter, HTTPException
-
-from .config import get_settings
-from datetime import datetime, timezone
-
-from fastapi import APIRouter, HTTPException
 
 router = APIRouter(prefix="/api")
 
